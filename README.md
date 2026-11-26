@@ -74,7 +74,7 @@ Without the two environment variables, the app runs in device-only mode: there's
 - `src/lib/sync.ts` pushes local changes and pulls newer ones from Supabase's `records` table. The `push_records` function never lets an older edit overwrite a newer one.
 - `public/sw.js` is a small service worker that keeps the app opening offline.
 - The exercise library combines our own list of common lifts (`src/lib/catalogue.ts`) with [Free Exercise DB](https://github.com/yuhonas/free-exercise-db), which is public domain (Unlicense). `tools/build-library.py` converts it.
-- The exercise animations (`src/components/Move.tsx`) are original. One figure is posed for 22 movement types (squat, hinge, press, row, curl and so on), with arms and legs solved by simple inverse kinematics. Each exercise uses the figure for its movement type, so similar exercises share an animation.
+- The exercise animations (`src/components/anim`) are original. A side-view figure is drawn from smooth shapes and posed by a few key poses per exercise; knees and elbows are solved with simple inverse kinematics. The 101 most common exercises each have their own clip in `anim/clips` (equipment, rep timing and working muscles included). Every other exercise borrows the clip of the closest common lift (`anim/clips/index.ts`). To add one, write a `makeClip({ keys, steps, hot })` and add it to `OWN`.
 - The body map (`src/components/BodyMap.tsx`) and the icons were drawn for this project.
 - `npm run build:demo` builds `demo.html`, a no-login version with sample data, for previews.
 
