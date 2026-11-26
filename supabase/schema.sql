@@ -17,6 +17,8 @@ create index if not exists records_user_server_ts on public.records (user_id, se
 
 alter table public.records enable row level security;
 
+grant select, insert, update, delete on public.records to authenticated;
+
 drop policy if exists "own rows" on public.records;
 create policy "own rows" on public.records
   for all
