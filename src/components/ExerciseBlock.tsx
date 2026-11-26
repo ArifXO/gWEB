@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { MoveFigure } from './Move'
+import { ExerciseAnim } from './anim/ExerciseAnim'
 import { stepFor, useExercises } from '../lib/exercises'
 import { useStore } from '../lib/store'
 import { bests, finished, fmtNum, lastPerformance, prsFor, suggest } from '../lib/training'
@@ -66,7 +66,7 @@ export function ExerciseBlock({ entry, index, count, workoutId, startedAt, onCha
       <div className="flex items-start gap-3 px-4 pt-4">
         <button className="flex min-w-0 flex-1 items-center gap-3 text-left" onClick={() => setInfo(true)} aria-label={`How to do ${ex.name}`}>
           <span className="shrink-0 rounded-xl bg-raised/70">
-            <MoveFigure pattern={ex.pattern} equipment={ex.equipment} size={46} animate={false} />
+            <ExerciseAnim ex={ex} size={48} animate={false} />
           </span>
           <span className="min-w-0">
             <span className={`block text-[18px] font-semibold leading-tight tracking-tight ${allDone ? 'text-mute' : ''}`}>{ex.name}</span>

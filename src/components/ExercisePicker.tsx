@@ -5,7 +5,7 @@ import { useStore } from '../lib/store'
 import { uid } from '../lib/types'
 import { ICheck, IPlus, ISearch } from './icons'
 import { ExerciseInfo } from './ExerciseInfo'
-import { MoveFigure } from './Move'
+import { ExerciseAnim } from './anim/ExerciseAnim'
 import { Button, Chip, Sheet } from './ui'
 
 export function ExercisePicker({ open, onClose, onPick, multi = true, title, initialMuscle }: { open: boolean; onClose: () => void; onPick: (ids: string[]) => void; multi?: boolean; title?: string; initialMuscle?: Muscle }) {
@@ -155,5 +155,5 @@ function CreateExercise({ initialName, onCreate, onCancel }: { initialName: stri
 function MiniMove({ id }: { id: string }) {
   const { get } = useExercises()
   const e = get(id)
-  return <MoveFigure pattern={e.pattern} equipment={e.equipment} size={36} animate={false} />
+  return <ExerciseAnim ex={e} size={40} animate={false} />
 }

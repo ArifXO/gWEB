@@ -5,7 +5,7 @@ import { e1rm, finished, fmtNum } from '../lib/training'
 import { relDay } from '../lib/dates'
 import { BodyMap } from './BodyMap'
 import { summarize } from './ExerciseBlock'
-import { MoveFigure } from './Move'
+import { ExerciseAnim } from './anim/ExerciseAnim'
 import { Sheet } from './ui'
 
 let howtoCache: Record<string, string[]> | null = null
@@ -49,7 +49,7 @@ function Body({ id }: { id: string }) {
   return (
     <div className="flex flex-col gap-5 pb-4">
       <div className="flex items-center gap-4 rounded-2xl bg-raised/50 p-3">
-        <MoveFigure pattern={ex.pattern} equipment={ex.equipment} size={150} />
+        <ExerciseAnim ex={ex} size={150} />
         <div className="min-w-0 flex-1">
           <BodyMap load={load} full={2} size={110} />
         </div>
