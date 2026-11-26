@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { CustomExercise, Kind, Meta, Routine, Settings, Workout } from './types'
+import type { CustomExercise, Kind, Meta, Routine, Settings, WeighIn, Workout } from './types'
 import { uid } from './types'
 
 export interface RemoteRow {
@@ -19,6 +19,7 @@ interface Data {
   routines: Coll<Routine>
   workouts: Coll<Workout>
   exercises: Coll<CustomExercise>
+  weights: Coll<WeighIn>
   settings: Settings
   active: Workout | null // the workout in progress (kept on this device until finished)
   dirty: Record<string, number> // "kind:id" -> updatedAt that still needs pushing
@@ -32,13 +33,15 @@ interface Actions {
   deleteWorkout: (id: string) => void
   saveExercise: (e: Omit<CustomExercise, 'updatedAt'>) => void
   setSettings: (p: Partial<Omit<Settings, keyof Meta>>) => void
+  logWeight: (date: string, w: number) => void
+  deleteWeight: (date: string) => void
   setActive: (w: Workout | null) => void
   finishActive: () => void
   // sync plumbing
   claim: (userId: string) => void
   applyRemote: (rows: RemoteRow[], lastPull: string | null) => void
   markPushed: (sent: Record<string, number>) => void
-  replaceAll: (d: Pick<Data, 'routines' | 'workouts' | 'exercises' | 'settings'>) => void
+  replaceAll: (d: Pick<Data, 'routines' | 'workouts' | 'exercises' | 'settings'> & Partial<Pick<Data, 'weights'>>) => void
   resetLocal: () => void
 }
 
@@ -49,13 +52,14 @@ const empty = (): Data => ({
   routines: {},
   workouts: {},
   exercises: {},
+  weights: {},
   settings: defaultSettings(),
   active: null,
   dirty: {},
   lastPull: null,
 })
 
-const collFor = { routine: 'routines', workout: 'workouts', exercise: 'exercises' } as const
+const collFor = { routine: 'routines', workout: 'workouts', exercise: 'exercises', weight: 'weights' } as const
 
 /** Monotonic edit clock, so two edits in the same millisecond still order correctly. */
 let lastStamp = 0
@@ -100,6 +104,18 @@ export const useStore = create<Data & Actions>()(
           const t = stamp()
           return { settings: { ...s.settings, ...p, updatedAt: t }, dirty: { ...s.dirty, 'settings:settings': t } }
         }),
+      logWeight: (date, w) =>
+        set((s) => {
+          const t = stamp()
+          return { weights: { ...s.weights, [date]: { id: date, w, updatedAt: t } }, dirty: { ...s.dirty, [`weight:${date}`]: t } }
+        }),
+      deleteWeight: (date) =>
+        set((s) => {
+          const x = s.weights[date]
+          if (!x) return {}
+          const t = stamp()
+          return { weights: { ...s.weights, [date]: { ...x, deleted: true, updatedAt: t } }, dirty: { ...s.dirty, [`weight:${date}`]: t } }
+        }),
       setActive: (w) => set({ active: w }),
       finishActive: () =>
         set((s) => {
@@ -124,6 +140,7 @@ export const useStore = create<Data & Actions>()(
             for (const r of Object.values(s.routines)) dirty[`routine:${r.id}`] = r.updatedAt
             for (const w of Object.values(s.workouts)) dirty[`workout:${w.id}`] = w.updatedAt
             for (const e of Object.values(s.exercises)) dirty[`exercise:${e.id}`] = e.updatedAt
+            for (const e of Object.values(s.weights ?? {})) dirty[`weight:${e.id}`] = e.updatedAt
             if (s.settings.updatedAt) dirty['settings:settings'] = s.settings.updatedAt
             return { owner: userId, dirty, lastPull: null }
           }
@@ -134,7 +151,7 @@ export const useStore = create<Data & Actions>()(
       applyRemote: (rows, lastPull) =>
         set((s) => {
           const next: Partial<Data> = { lastPull: lastPull ?? s.lastPull }
-          const colls = { routines: { ...s.routines }, workouts: { ...s.workouts }, exercises: { ...s.exercises } }
+          const colls = { routines: { ...s.routines }, workouts: { ...s.workouts }, exercises: { ...s.exercises }, weights: { ...s.weights } }
           let settings = s.settings
           for (const row of rows) {
             const rec = { ...(row.data as Meta), id: row.id, updatedAt: Number(row.updated_at), deleted: row.deleted || undefined }
@@ -175,6 +192,7 @@ export const useStore = create<Data & Actions>()(
             routines: { ...s.routines, ...bump(d.routines ?? {}, 'routine') },
             workouts: { ...s.workouts, ...bump(d.workouts ?? {}, 'workout') },
             exercises: { ...s.exercises, ...bump(d.exercises ?? {}, 'exercise') },
+            weights: { ...s.weights, ...bump(d.weights ?? {}, 'weight') },
             settings: { ...defaultSettings(), ...d.settings, id: 'settings', updatedAt: t },
             dirty,
           }
@@ -182,7 +200,7 @@ export const useStore = create<Data & Actions>()(
 
       resetLocal: () => set(empty()),
     }),
-    { name: 'gweb-data', version: 1 },
+    { name: 'gweb-data', version: 2, migrate: (old) => ({ weights: {}, ...(old as object) }) as Data & Actions },
   ),
 )
 

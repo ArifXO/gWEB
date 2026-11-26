@@ -27,3 +27,5 @@ export const IUp = ({ size, ...p }: P) => <svg {...base(size)} {...p}><path d="M
 export const IDown = ({ size, ...p }: P) => <svg {...base(size)} {...p}><path d="M12 5v14M6 13l6 6 6-6" /></svg>
 export const IStar = ({ size, ...p }: P) => <svg {...base(size)} {...p}><path d="m12 4 2.4 5 5.6.6-4.2 3.8 1.2 5.6L12 16.2 7 19l1.2-5.6L4 9.6 9.6 9z" /></svg>
 export const ICloud = ({ size, ...p }: P) => <svg {...base(size)} {...p}><path d="M7 18h10a4 4 0 0 0 .5-8A6 6 0 0 0 6 9.5 4.3 4.3 0 0 0 7 18z" /></svg>
+export const IRefresh = ({ size, ...p }: P) => <svg {...base(size)} {...p}><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 0 1-13.7 5.6L4 15.5M4 20v-4.5h4.5" /></svg>
+export const IScale = ({ size, ...p }: P) => <svg {...base(size)} {...p}><rect x="3.5" y="4" width="17" height="16" rx="4" /><path d="M8.5 9.5a5 5 0 0 1 7 0L12 12.5" /></svg>

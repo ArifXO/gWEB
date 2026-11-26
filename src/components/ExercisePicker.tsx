@@ -4,12 +4,16 @@ import { useExercises } from '../lib/exercises'
 import { useStore } from '../lib/store'
 import { uid } from '../lib/types'
 import { ICheck, IPlus, ISearch } from './icons'
+import { ExerciseInfo } from './ExerciseInfo'
+import { MoveFigure } from './Move'
 import { Button, Chip, Sheet } from './ui'
 
-export function ExercisePicker({ open, onClose, onPick, multi = true }: { open: boolean; onClose: () => void; onPick: (ids: string[]) => void; multi?: boolean }) {
+export function ExercisePicker({ open, onClose, onPick, multi = true, title, initialMuscle }: { open: boolean; onClose: () => void; onPick: (ids: string[]) => void; multi?: boolean; title?: string; initialMuscle?: Muscle }) {
   const { all } = useExercises()
   const [q, setQ] = useState('')
-  const [muscle, setMuscle] = useState<Muscle | null>(null)
+  const [muscle, setMuscle] = useState<Muscle | null>(initialMuscle ?? null)
+  const [info, setInfo] = useState<string | null>(null)
+  const [limit, setLimit] = useState(60)
   const [picked, setPicked] = useState<string[]>([])
   const [creating, setCreating] = useState(false)
 
@@ -17,10 +21,13 @@ export function ExercisePicker({ open, onClose, onPick, multi = true }: { open: 
     const words = q.toLowerCase().split(/\s+/).filter(Boolean)
     return all.filter((e) => (!muscle || e.muscle === muscle) && words.every((w) => `${e.name} ${e.muscle} ${e.equipment}`.toLowerCase().includes(w)))
   }, [all, q, muscle])
+  const shown = list.slice(0, limit)
 
   const close = () => {
     setPicked([])
     setQ('')
+    setLimit(60)
+    setMuscle(initialMuscle ?? null)
     setCreating(false)
     onClose()
   }
@@ -34,7 +41,7 @@ export function ExercisePicker({ open, onClose, onPick, multi = true }: { open: 
   }
 
   return (
-    <Sheet open={open} onClose={close} title={creating ? 'New exercise' : 'Add exercises'} full>
+    <Sheet open={open} onClose={close} title={creating ? 'New exercise' : title ?? (multi ? 'Add exercises' : 'Pick an exercise')} full>
       {creating ? (
         <CreateExercise
           initialName={q}
@@ -49,20 +56,23 @@ export function ExercisePicker({ open, onClose, onPick, multi = true }: { open: 
         <div className="flex h-full flex-col">
           <label className="flex h-11 items-center gap-2 rounded-xl bg-raised px-3 text-mute">
             <ISearch size={18} />
-            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search exercises" className="h-full flex-1 bg-transparent text-[16px] text-ink outline-none placeholder:text-faint" />
+            <input value={q} onChange={(e) => (setQ(e.target.value), setLimit(60))} placeholder={`Search ${all.length} exercises`} className="h-full flex-1 bg-transparent text-[16px] text-ink outline-none placeholder:text-faint" />
           </label>
           <div className="no-scrollbar -mx-5 mt-3 flex gap-2 overflow-x-auto px-5">
             <Chip active={!muscle} onClick={() => setMuscle(null)}>All</Chip>
             {MUSCLES.map((m) => (
-              <Chip key={m} active={muscle === m} onClick={() => setMuscle(muscle === m ? null : m)}>{m}</Chip>
+              <Chip key={m} active={muscle === m} onClick={() => (setMuscle(muscle === m ? null : m), setLimit(60))}>{m}</Chip>
             ))}
           </div>
           <ul className="mt-2 flex-1">
-            {list.map((e) => {
+            {shown.map((e) => {
               const on = picked.includes(e.id)
               return (
-                <li key={e.id}>
-                  <button onClick={() => toggle(e.id)} className="flex w-full items-center gap-3 border-b border-line/50 py-3 text-left active:bg-raised/50">
+                <li key={e.id} className="flex items-center border-b border-line/50">
+                  <button aria-label={`About ${e.name}`} onClick={() => setInfo(e.id)} className="-ml-1 mr-1 grid size-11 shrink-0 place-items-center rounded-xl active:bg-raised">
+                    <MiniMove id={e.id} />
+                  </button>
+                  <button onClick={() => toggle(e.id)} className="flex min-w-0 flex-1 items-center gap-3 py-3 text-left active:bg-raised/50">
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-[16px]">{e.name}</div>
                       <div className="text-[13px] text-mute">{e.muscle} · {e.equipment}{e.custom ? ' · yours' : ''}</div>
@@ -76,12 +86,21 @@ export function ExercisePicker({ open, onClose, onPick, multi = true }: { open: 
                 </li>
               )
             })}
+            {list.length > shown.length && (
+              <li>
+                <button onClick={() => setLimit((l) => l + 120)} className="h-12 w-full text-[14px] text-mute">
+                  Show more ({list.length - shown.length} left)
+                </button>
+              </li>
+            )}
+            {list.length === 0 && <li className="py-6 text-center text-[14px] text-mute">No exercise matches that.</li>}
             <li>
               <button onClick={() => setCreating(true)} className="flex w-full items-center gap-3 py-4 text-left text-accent">
                 <IPlus size={20} /> {q ? `Create “${q}”` : 'Create your own exercise'}
               </button>
             </li>
           </ul>
+          <ExerciseInfo id={info} onClose={() => setInfo(null)} />
           {multi && picked.length > 0 && (
             <div className="sticky bottom-0 -mx-5 border-t border-line bg-surface px-5 pt-3">
               <Button kind="primary" className="w-full" onClick={() => done()}>
@@ -131,4 +150,10 @@ function CreateExercise({ initialName, onCreate, onCancel }: { initialName: stri
       </div>
     </form>
   )
+}
+
+function MiniMove({ id }: { id: string }) {
+  const { get } = useExercises()
+  const e = get(id)
+  return <MoveFigure pattern={e.pattern} equipment={e.equipment} size={36} animate={false} />
 }

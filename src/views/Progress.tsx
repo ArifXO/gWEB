@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { BodyMap } from '../components/BodyMap'
-import { Card, Empty, Header, Sheet } from '../components/ui'
+import { Button, Card, Empty, Header, NumberField, Sheet } from '../components/ui'
+import { ExerciseInfo, LineChart } from '../components/ExerciseInfo'
 import { IChevronRight } from '../components/icons'
 import { summarize } from '../components/ExerciseBlock'
 import { useExercises } from '../lib/exercises'
@@ -8,8 +9,9 @@ import { muscleLoad } from '../lib/muscles'
 import { useStore } from '../lib/store'
 import { e1rm, finished, fmtBig, fmtNum, weekStart, weeklyVolume } from '../lib/training'
 import type { SetLog, Workout } from '../lib/types'
+import { IPlus } from '../components/icons'
 import type { Muscle } from '../lib/catalogue'
-import { relDay } from './Home'
+import { relDay } from '../lib/dates'
 
 export default function Progress() {
   const workouts = useStore((s) => s.workouts)
@@ -20,7 +22,7 @@ export default function Progress() {
 
   const weeks = useMemo(() => weeklyVolume(hist, 8), [hist])
   const thisWeek = useMemo(() => hist.filter((w) => w.startedAt >= weekStart(Date.now())), [hist])
-  const load = useMemo(() => muscleLoad(thisWeek.flatMap((w) => w.entries.map((e) => ({ muscle: get(e.exerciseId).muscle, sets: e.sets.length })))), [thisWeek, get])
+  const load = useMemo(() => muscleLoad(thisWeek.flatMap((w) => w.entries.map((e) => ({ ex: get(e.exerciseId), sets: e.sets.length })))), [thisWeek, get])
   const untrained = (['Chest', 'Back', 'Shoulders', 'Quads', 'Hamstrings', 'Glutes', 'Biceps', 'Triceps'] as Muscle[]).filter((m) => !(load[m] && load[m]! >= 1))
 
   const lifts = useMemo(() => {
@@ -46,6 +48,7 @@ export default function Progress() {
       <div className="mx-auto max-w-[560px] pb-28">
         <Header title="Progress" />
         <Empty title="Nothing to show yet">Finish a workout and your progress will build up here.</Empty>
+        <div className="px-4"><BodyWeight /></div>
       </div>
     )
 
@@ -98,6 +101,9 @@ export default function Progress() {
           </div>
         </Card>
 
+        <Calendar hist={hist} />
+        <BodyWeight />
+
         <section className="mt-3">
           <h2 className="mb-2 text-[13px] font-medium uppercase tracking-[0.08em] text-mute">Your lifts</h2>
           <ul className="overflow-hidden rounded-2xl border border-line/60 bg-surface">
@@ -106,7 +112,7 @@ export default function Progress() {
                 <button onClick={() => setOpen(l.id)} className="flex w-full items-center gap-3 px-4 py-3.5 text-left active:bg-raised">
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[15px]">{get(l.id).name}</div>
-                    <div className="text-[12px] text-mute">Last done {relDay(l.lastAt).toLowerCase()}</div>
+                    <div className="text-[12px] text-mute">Last done: {relDay(l.lastAt)}</div>
                   </div>
                   <div className="text-right">
                     <div className="num text-[15px]">{summarize([l.best], unit)}</div>
@@ -119,55 +125,8 @@ export default function Progress() {
           </ul>
         </section>
       </div>
-      <Sheet open={!!open} onClose={() => setOpen(null)} title={open ? get(open).name : ''}>
-        {open && <LiftDetail id={open} hist={hist} unit={unit} />}
-      </Sheet>
+      <ExerciseInfo id={open} onClose={() => setOpen(null)} />
     </div>
-  )
-}
-
-function LiftDetail({ id, hist, unit }: { id: string; hist: Workout[]; unit: string }) {
-  const sessions = hist
-    .map((w) => ({ at: w.startedAt, sets: w.entries.filter((e) => e.exerciseId === id).flatMap((e) => e.sets) }))
-    .filter((s) => s.sets.length)
-  const points = sessions.map((s) => ({ at: s.at, v: Math.max(...s.sets.map((x) => x.w)) })).reverse()
-  return (
-    <div>
-      {points.length > 1 ? <LineChart points={points} unit={unit} /> : <p className="text-[14px] text-mute">Do this a couple more times to see a chart.</p>}
-      <h3 className="mt-5 mb-1 text-[13px] font-medium uppercase tracking-[0.08em] text-mute">Recent sessions</h3>
-      <ul>
-        {sessions.slice(0, 12).map((s) => (
-          <li key={s.at} className="flex justify-between gap-3 border-b border-line/50 py-2.5 text-[14px]">
-            <span className="text-mute">{relDay(s.at)}</span>
-            <span className="num text-right">{summarize(s.sets, unit)}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-function LineChart({ points, unit }: { points: { at: number; v: number }[]; unit: string }) {
-  const W = 320, H = 140, P = 8
-  const min = Math.min(...points.map((p) => p.v)), max = Math.max(...points.map((p) => p.v))
-  const span = max - min || 1
-  const x = (i: number) => P + (i / (points.length - 1)) * (W - 2 * P)
-  const y = (v: number) => H - P - ((v - min) / span) * (H - 2 * P - 16)
-  const d = points.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(p.v).toFixed(1)}`).join('')
-  return (
-    <figure className="m-0">
-      <figcaption className="mb-2 flex justify-between text-[13px] text-mute">
-        <span>Heaviest weight per session</span>
-        <span className="num text-ink">{fmtNum(points[points.length - 1].v)} {unit}</span>
-      </figcaption>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={`From ${fmtNum(points[0].v)} to ${fmtNum(points[points.length - 1].v)} ${unit}`}>
-        {[0, 0.5, 1].map((f) => <line key={f} x1={P} x2={W - P} y1={y(min + f * span)} y2={y(min + f * span)} stroke="var(--color-line)" strokeWidth="1" />)}
-        <text x={W - P} y={y(max) - 4} textAnchor="end" fontSize="10" fill="var(--color-faint)">{fmtNum(max)}</text>
-        <text x={W - P} y={y(min) - 4} textAnchor="end" fontSize="10" fill="var(--color-faint)">{fmtNum(min)}</text>
-        <path d={d} fill="none" stroke="var(--color-accent)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-        {points.map((p, i) => <circle key={i} cx={x(i)} cy={y(p.v)} r="3" fill="var(--color-bg)" stroke="var(--color-accent)" strokeWidth="2" />)}
-      </svg>
-    </figure>
   )
 }
 
@@ -191,4 +150,98 @@ function weekStreak(hist: Workout[]): number {
     cur = weekStart(cur - 86400000)
   }
   return n
+}
+
+/** The last 18 weeks as a grid of days: a filled square for every day you trained. */
+function Calendar({ hist }: { hist: Workout[] }) {
+  const weeks = 18
+  const days = new Set(hist.map((w) => new Date(w.startedAt).setHours(0, 0, 0, 0)))
+  const start = weekStart(Date.now()) - (weeks - 1) * 7 * 86400000
+  const today = new Date().setHours(0, 0, 0, 0)
+  const cols = Array.from({ length: weeks }, (_, c) =>
+    Array.from({ length: 7 }, (_, r) => {
+      const d = new Date(start)
+      d.setDate(d.getDate() + c * 7 + r)
+      const t = d.getTime()
+      return { t, on: days.has(t), future: t > today }
+    }),
+  )
+  const count = hist.filter((w) => w.startedAt >= start).length
+  return (
+    <Card className="p-4">
+      <div className="flex items-baseline justify-between">
+        <h2 className="text-[15px] font-semibold">Training days</h2>
+        <span className="text-[12px] text-mute">{count} in 18 weeks</span>
+      </div>
+      <div className="mt-3 flex gap-[3px]" role="img" aria-label={`${count} workouts in the last 18 weeks`}>
+        {cols.map((col, i) => (
+          <div key={i} className="flex flex-1 flex-col gap-[3px]">
+            {col.map((d) => (
+              <div key={d.t} className={`aspect-square w-full rounded-[3px] ${d.future ? 'bg-transparent' : d.on ? 'bg-accent' : 'bg-raised'}`} />
+            ))}
+          </div>
+        ))}
+      </div>
+      <div className="mt-2 flex justify-between text-[10px] text-faint">
+        <span>{new Date(start).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+        <span>Today</span>
+      </div>
+    </Card>
+  )
+}
+
+const dayKey = (t = Date.now()) => {
+  const d = new Date(t)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function BodyWeight() {
+  const weights = useStore((s) => s.weights)
+  const unit = useStore((s) => s.settings.unit)
+  const logWeight = useStore((s) => s.logWeight)
+  const deleteWeight = useStore((s) => s.deleteWeight)
+  const list = useMemo(() => Object.values(weights ?? {}).filter((x) => !x.deleted).sort((a, b) => a.id.localeCompare(b.id)), [weights])
+  const last = list[list.length - 1]
+  const [open, setOpen] = useState(false)
+  const [val, setVal] = useState(0)
+  const monthAgo = list.find((x) => x.id >= dayKey(Date.now() - 30 * 86400000))
+  const change = last && monthAgo && monthAgo !== last ? last.w - monthAgo.w : null
+  const pts = list.slice(-30).map((x) => ({ at: new Date(x.id).getTime(), v: x.w }))
+
+  return (
+    <Card className="p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-[15px] font-semibold">Body weight</h2>
+          {last ? (
+            <div className="mt-1 flex items-baseline gap-2">
+              <span className="num text-[24px] font-semibold">{fmtNum(last.w)}</span>
+              <span className="text-[13px] text-mute">{unit}</span>
+              {change !== null && (
+                <span className="num text-[13px] text-mute">
+                  {change > 0 ? '+' : ''}{fmtNum(Math.round(change * 10) / 10)} in 30 days
+                </span>
+              )}
+            </div>
+          ) : (
+            <p className="mt-1 text-[14px] text-mute">Log your weight now and then to see the trend.</p>
+          )}
+        </div>
+        <Button className="min-h-10 shrink-0 px-3 text-[14px]" onClick={() => (setVal(last?.w ?? 70), setOpen(true))}>
+          <IPlus size={16} /> Log
+        </Button>
+      </div>
+      {pts.length > 1 && <LineChart points={pts} unit={unit} label="Last 30 entries" />}
+      <Sheet open={open} onClose={() => setOpen(false)} title="Log body weight">
+        <p className="mb-3 text-[14px] text-mute">Today, {new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}. Logging again today replaces it.</p>
+        <NumberField label={`Body weight in ${unit}`} value={val} step={0.1} onChange={setVal} />
+        <div className="mt-4 flex gap-2">
+          {weights?.[dayKey()] && !weights[dayKey()].deleted && (
+            <Button kind="danger" className="flex-1" onClick={() => (deleteWeight(dayKey()), setOpen(false))}>Remove today</Button>
+          )}
+          <Button kind="primary" className="flex-[2]" disabled={!val} onClick={() => (logWeight(dayKey(), Math.round(val * 10) / 10), setOpen(false))}>Save</Button>
+        </div>
+      </Sheet>
+    </Card>
+  )
 }

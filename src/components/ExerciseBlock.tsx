@@ -1,10 +1,14 @@
 import { useMemo, useState } from 'react'
+import { MoveFigure } from './Move'
 import { stepFor, useExercises } from '../lib/exercises'
 import { useStore } from '../lib/store'
 import { bests, finished, fmtNum, lastPerformance, prsFor, suggest } from '../lib/training'
 import type { Entry, SetLog } from '../lib/types'
 import { ICheck, IDown, IMinus, IMore, IPlus, ITrash, IUp } from './icons'
 import { NumberField, Sheet } from './ui'
+import { ExerciseInfo } from './ExerciseInfo'
+import { ExercisePicker } from './ExercisePicker'
+import { IRefresh } from './icons'
 
 interface Props {
   entry: Entry
@@ -15,17 +19,20 @@ interface Props {
   onChange: (e: Entry) => void
   onRemove: () => void
   onMove: (dir: -1 | 1) => void
+  onSwap?: (exerciseId: string) => void
   onSetDone?: (rest: number) => void
   /** editing a saved workout: sets are already done, no rest timer */
   editing?: boolean
 }
 
-export function ExerciseBlock({ entry, index, count, workoutId, startedAt, onChange, onRemove, onMove, onSetDone, editing }: Props) {
+export function ExerciseBlock({ entry, index, count, workoutId, startedAt, onChange, onRemove, onMove, onSwap, onSetDone, editing }: Props) {
   const { get } = useExercises()
   const ex = get(entry.exerciseId)
   const unit = useStore((s) => s.settings.unit)
   const workouts = useStore((s) => s.workouts)
   const [menu, setMenu] = useState(false)
+  const [info, setInfo] = useState(false)
+  const [swap, setSwap] = useState(false)
   const step = stepFor(unit, ex)
 
   const hist = useMemo(() => finished(workouts), [workouts])
@@ -57,12 +64,17 @@ export function ExerciseBlock({ entry, index, count, workoutId, startedAt, onCha
   return (
     <section className="rounded-2xl border border-line/60 bg-surface" aria-label={ex.name}>
       <div className="flex items-start gap-3 px-4 pt-4">
-        <div className="min-w-0 flex-1">
-          <h2 className={`text-[18px] font-semibold leading-tight tracking-tight ${allDone ? 'text-mute' : ''}`}>{ex.name}</h2>
-          <div className="mt-1 text-[13px] text-mute">
-            {ex.muscle} · {ex.equipment}
-          </div>
-        </div>
+        <button className="flex min-w-0 flex-1 items-center gap-3 text-left" onClick={() => setInfo(true)} aria-label={`How to do ${ex.name}`}>
+          <span className="shrink-0 rounded-xl bg-raised/70">
+            <MoveFigure pattern={ex.pattern} equipment={ex.equipment} size={46} animate={false} />
+          </span>
+          <span className="min-w-0">
+            <span className={`block text-[18px] font-semibold leading-tight tracking-tight ${allDone ? 'text-mute' : ''}`}>{ex.name}</span>
+            <span className="mt-1 block text-[13px] text-mute">
+              {ex.muscle} · {ex.equipment} · <span className="text-ink/70 underline decoration-line underline-offset-2">How to</span>
+            </span>
+          </span>
+        </button>
         <button aria-label={`Options for ${ex.name}`} onClick={() => setMenu(true)} className="-mr-2 -mt-1 grid size-10 place-items-center rounded-full text-mute active:bg-raised">
           <IMore />
         </button>
@@ -120,6 +132,7 @@ export function ExerciseBlock({ entry, index, count, workoutId, startedAt, onCha
 
       <Sheet open={menu} onClose={() => setMenu(false)} title={ex.name}>
         <div className="flex flex-col">
+          {onSwap && <MenuItem onClick={() => (setMenu(false), setSwap(true))} icon={<IRefresh size={20} />}>Swap for another exercise</MenuItem>}
           <MenuItem disabled={index === 0} onClick={() => (onMove(-1), setMenu(false))} icon={<IUp size={20} />}>Move up</MenuItem>
           <MenuItem disabled={index === count - 1} onClick={() => (onMove(1), setMenu(false))} icon={<IDown size={20} />}>Move down</MenuItem>
           {!editing && (
@@ -136,6 +149,8 @@ export function ExerciseBlock({ entry, index, count, workoutId, startedAt, onCha
           <MenuItem danger onClick={() => (onRemove(), setMenu(false))} icon={<ITrash size={20} />}>Remove exercise</MenuItem>
         </div>
       </Sheet>
+      <ExerciseInfo id={info ? ex.id : null} onClose={() => setInfo(false)} />
+      {onSwap && <ExercisePicker open={swap} multi={false} title={`Swap ${ex.name}`} initialMuscle={ex.muscle} onClose={() => setSwap(false)} onPick={([id]) => onSwap(id)} />}
     </section>
   )
 }

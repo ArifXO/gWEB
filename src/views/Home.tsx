@@ -10,6 +10,7 @@ import { routineForDay, startWorkout } from '../lib/session'
 import { useStore } from '../lib/store'
 import { doneSets, finished, fmtBig, fmtDuration, weekStart, weekday, workoutVolume } from '../lib/training'
 import type { Routine } from '../lib/types'
+import { relDay } from '../lib/dates'
 
 const DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
@@ -181,7 +182,7 @@ export default function Home() {
 
 function TodayCard({ routine, onStart }: { routine: Routine; onStart: () => void }) {
   const { get } = useExercises()
-  const load = muscleLoad(routine.items.map((i) => ({ muscle: get(i.exerciseId).muscle, sets: i.sets })))
+  const load = muscleLoad(routine.items.map((i) => ({ ex: get(i.exerciseId), sets: i.sets })))
   const sets = routine.items.reduce((a, i) => a + i.sets, 0)
   const mins = Math.round(routine.items.reduce((a, i) => a + i.sets * (i.rest + 40), 0) / 60 / 5) * 5
   return (
@@ -216,13 +217,4 @@ function TodayCard({ routine, onStart }: { routine: Routine; onStart: () => void
 function greeting(t: number) {
   const h = new Date(t).getHours()
   return h < 5 ? 'Late session?' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
-}
-
-export function relDay(t: number, now = Date.now()) {
-  const d0 = new Date(now).setHours(0, 0, 0, 0)
-  const diff = Math.round((d0 - new Date(t).setHours(0, 0, 0, 0)) / 86400000)
-  if (diff === 0) return 'Today'
-  if (diff === 1) return 'Yesterday'
-  if (diff < 7) return new Date(t).toLocaleDateString(undefined, { weekday: 'long' })
-  return new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: new Date(t).getFullYear() === new Date(now).getFullYear() ? undefined : 'numeric' })
 }

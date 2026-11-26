@@ -1,4 +1,4 @@
-import type { Muscle } from './catalogue'
+import type { Exercise, Muscle } from './catalogue'
 
 /** How much a muscle gets worked when an exercise targets another one (rough, for the body map only). */
 const HELPERS: Partial<Record<Muscle, Partial<Record<Muscle, number>>>> = {
@@ -11,12 +11,17 @@ const HELPERS: Partial<Record<Muscle, Partial<Record<Muscle, number>>>> = {
   'Full body': { Quads: 0.7, Glutes: 0.7, Back: 0.7, Shoulders: 0.6, Hamstrings: 0.5, Core: 0.5 },
 }
 
-/** Sets per muscle (helpers counted at a fraction). */
-export function muscleLoad(list: { muscle: Muscle; sets: number }[]): Partial<Record<Muscle, number>> {
+/** Sets per muscle. Helping muscles count at a fraction. */
+export function muscleLoad(list: { ex: Exercise; sets: number }[]): Partial<Record<Muscle, number>> {
   const out: Partial<Record<Muscle, number>> = {}
-  for (const { muscle, sets } of list) {
-    if (muscle !== 'Full body' && muscle !== 'Cardio') out[muscle] = (out[muscle] ?? 0) + sets
-    for (const [m, f] of Object.entries(HELPERS[muscle] ?? {})) out[m as Muscle] = (out[m as Muscle] ?? 0) + sets * f!
+  const add = (m: Muscle, v: number) => {
+    if (m !== 'Full body' && m !== 'Cardio') out[m] = (out[m] ?? 0) + v
+  }
+  for (const { ex, sets } of list) {
+    add(ex.muscle, sets)
+    const helpers: Partial<Record<Muscle, number>> = ex.secondary?.length ? Object.fromEntries(ex.secondary.map((m) => [m, 0.4])) : HELPERS[ex.muscle] ?? {}
+    if (ex.muscle === 'Full body') Object.assign(helpers, HELPERS['Full body'])
+    for (const [m, f] of Object.entries(helpers)) add(m as Muscle, sets * f!)
   }
   return out
 }

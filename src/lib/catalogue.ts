@@ -1,9 +1,15 @@
+import library from './library.json'
+
 // Built-in exercise list. Users can add their own on top (stored as 'exercise' records).
 export type Muscle =
   | 'Chest' | 'Back' | 'Shoulders' | 'Biceps' | 'Triceps' | 'Forearms'
   | 'Quads' | 'Hamstrings' | 'Glutes' | 'Calves' | 'Core' | 'Full body' | 'Cardio'
 
 export type Equipment = 'Barbell' | 'Dumbbell' | 'Cable' | 'Machine' | 'Bodyweight' | 'Kettlebell' | 'EZ bar' | 'Smith machine' | 'Band' | 'Other'
+
+export type Pattern =
+  | 'squat' | 'hinge' | 'lunge' | 'bench' | 'ohp' | 'pushup' | 'row' | 'pullup' | 'curl' | 'triext' | 'raise'
+  | 'calf' | 'crunch' | 'plank' | 'legraise' | 'hipthrust' | 'legext' | 'legcurl' | 'dip' | 'jump' | 'run' | 'carry'
 
 export interface Exercise {
   id: string
@@ -12,6 +18,9 @@ export interface Exercise {
   equipment: Equipment
   bodyweight?: boolean
   custom?: boolean
+  secondary?: Muscle[]
+  level?: 'beginner' | 'intermediate' | 'expert'
+  pattern?: Pattern
 }
 
 const raw: [string, Muscle, Equipment][] = [
@@ -157,13 +166,16 @@ const raw: [string, Muscle, Equipment][] = [
 
 export const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 
-export const CATALOGUE: Exercise[] = raw.map(([name, muscle, equipment]) => ({
-  id: slug(name),
-  name,
-  muscle,
-  equipment,
-  bodyweight: equipment === 'Bodyweight' || undefined,
-}))
+// The wider library comes from Free Exercise DB (public domain, github.com/yuhonas/free-exercise-db),
+// converted by tools/build-library.py. Our own list above keeps its ids, so saved workouts never break.
+const curated: Exercise[] = raw.map(([name, muscle, equipment]) => {
+  const id = slug(name)
+  return { id, name, muscle, equipment, bodyweight: equipment === 'Bodyweight' || undefined, ...(library.curated as Record<string, Partial<Exercise>>)[id] }
+})
+const more: Exercise[] = (library.more as Exercise[]).map((e) => ({ ...e, bodyweight: e.equipment === 'Bodyweight' || undefined }))
+
+export const CATALOGUE: Exercise[] = [...curated, ...more]
+export const POPULAR = new Set(curated.map((e) => e.id))
 
 export const MUSCLES: Muscle[] = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Forearms', 'Quads', 'Hamstrings', 'Glutes', 'Calves', 'Core', 'Full body', 'Cardio']
 export const EQUIPMENT: Equipment[] = ['Barbell', 'Dumbbell', 'Cable', 'Machine', 'Bodyweight', 'Kettlebell', 'EZ bar', 'Smith machine', 'Band', 'Other']

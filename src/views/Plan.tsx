@@ -56,7 +56,7 @@ export function Plan() {
               <li key={r.id}>
                 <Link to={`/plan/${r.id}`}>
                   <Card className="flex items-center gap-4 p-4 active:bg-raised">
-                    <BodyMap load={muscleLoad(r.items.map((i) => ({ muscle: get(i.exerciseId).muscle, sets: i.sets })))} full={4} size={56} />
+                    <BodyMap load={muscleLoad(r.items.map((i) => ({ ex: get(i.exerciseId), sets: i.sets })))} full={4} size={56} />
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-[17px] font-medium">{r.name}</div>
                       <div className="mt-0.5 text-[13px] text-mute">{r.days.length ? r.days.slice().sort().map((d) => DAY_NAMES[d]).join(', ') : 'Any day'} · {r.items.length} exercises</div>

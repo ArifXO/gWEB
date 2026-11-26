@@ -49,7 +49,12 @@ export interface Settings extends Meta {
   defaultRest: number
 }
 
-export type Kind = 'routine' | 'workout' | 'exercise' | 'settings'
+/** One body-weight entry per day; id is the date (YYYY-MM-DD). */
+export interface WeighIn extends Meta {
+  w: number
+}
+
+export type Kind = 'routine' | 'workout' | 'exercise' | 'settings' | 'weight'
 
 export const uid = () =>
   (crypto.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`)

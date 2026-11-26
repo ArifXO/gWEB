@@ -1,8 +1,8 @@
 import { useStore } from './store'
 
 export function exportJSON(): string {
-  const { routines, workouts, exercises, settings } = useStore.getState()
-  return JSON.stringify({ app: 'gweb', version: 1, exportedAt: new Date().toISOString(), routines, workouts, exercises, settings }, null, 2)
+  const { routines, workouts, exercises, weights, settings } = useStore.getState()
+  return JSON.stringify({ app: 'gweb', version: 1, exportedAt: new Date().toISOString(), routines, workouts, exercises, weights, settings }, null, 2)
 }
 
 export function downloadBackup() {

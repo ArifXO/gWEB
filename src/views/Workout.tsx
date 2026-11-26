@@ -82,6 +82,10 @@ export default function Workout() {
               ;[a[i], a[i + d]] = [a[i + d], a[i]]
               update(a)
             }}
+            onSwap={(id) => {
+              const n = makeEntry(get(id), { sets: e.sets.length, reps: e.targetReps ?? e.sets[0]?.r ?? 10, rest: e.rest })
+              update(active.entries.map((x, j) => (j === i ? { ...n, targetReps: e.targetReps } : x)))
+            }}
             onSetDone={(s) => rest.start(s)}
           />
         ))}

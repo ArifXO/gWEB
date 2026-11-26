@@ -10,6 +10,9 @@ A simple gym workout tracker that works in your phone's browser and installs on 
 - **History**: past workouts that you can open, edit, re-date or delete.
 - **Progress**: a body map of what you trained this week, weight lifted per week, and your best set plus a chart for each lift.
 - **Settings**: kg or lb, default rest time, sync status, and backup export or import.
+- **Exercise library**: 840+ exercises. Each one has an animated figure showing the movement, the muscles it works, written steps, and your own history with it. You can swap an exercise mid-workout, for example when a machine is taken.
+- **Body weight** log with a trend line, a **training calendar**, and **Do this workout again** from History.
+- **Sign in with Google** or email.
 
 It works offline. Changes are kept on the phone and sync when you're back online. When two devices edit the same thing, the newest edit wins.
 
@@ -42,6 +45,8 @@ In Supabase, go to **Authentication → URL Configuration**:
 
 This makes the "confirm your email" and "reset password" links open your app.
 
+For **Sign in with Google**, turn on the Google provider in **Authentication → Sign In / Providers → Google** and paste in a Client ID and secret from Google Cloud (APIs & Services → Credentials → OAuth client ID, type "Web application", with the authorized redirect URI that Supabase shows on that page).
+
 Optional: if you don't want new accounts to confirm their email first, turn off **Authentication → Sign In / Providers → Email → Confirm email**.
 
 ### 4. On your phone
@@ -68,6 +73,9 @@ Without the two environment variables, the app runs in device-only mode: there's
 - `src/lib/store.ts` holds all data. Every routine, workout and custom exercise is a record with an `updatedAt` time, and deletions are kept as markers so they sync too.
 - `src/lib/sync.ts` pushes local changes and pulls newer ones from Supabase's `records` table. The `push_records` function never lets an older edit overwrite a newer one.
 - `public/sw.js` is a small service worker that keeps the app opening offline.
-- The exercise list (`src/lib/catalogue.ts`), the body map (`src/components/BodyMap.tsx`) and the icons were made for this project.
+- The exercise library combines our own list of common lifts (`src/lib/catalogue.ts`) with [Free Exercise DB](https://github.com/yuhonas/free-exercise-db), which is public domain (Unlicense). `tools/build-library.py` converts it.
+- The exercise animations (`src/components/Move.tsx`) are original. One figure is posed for 22 movement types (squat, hinge, press, row, curl and so on), with arms and legs solved by simple inverse kinematics. Each exercise uses the figure for its movement type, so similar exercises share an animation.
+- The body map (`src/components/BodyMap.tsx`) and the icons were drawn for this project.
+- `npm run build:demo` builds `demo.html`, a no-login version with sample data, for previews.
 
 Design notes are in [docs/DESIGN.md](docs/DESIGN.md).

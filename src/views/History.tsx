@@ -6,10 +6,12 @@ import { IChevronRight, IPlus } from '../components/icons'
 import { Button, Card, Empty, Header, Sheet, useToast } from '../components/ui'
 import { useExercises } from '../lib/exercises'
 import { makeEntry } from '../lib/session'
+import { uid } from '../lib/types'
+import { IPlay } from '../components/icons'
 import { useStore } from '../lib/store'
 import { bests, doneSets, finished, fmtBig, fmtDuration, prsFor, workoutVolume } from '../lib/training'
 import type { Workout } from '../lib/types'
-import { relDay } from './Home'
+import { relDay } from '../lib/dates'
 
 export function History() {
   const workouts = useStore((s) => s.workouts)
@@ -207,6 +209,29 @@ export function WorkoutDetail() {
           </ul>
         )}
         {justDone && !edit && <Button kind="primary" className="mt-2" onClick={() => nav('/')}>Done</Button>}
+        {!justDone && !edit && (
+          <Button
+            className="mt-2"
+            onClick={() => {
+              const st = useStore.getState()
+              if (st.active) return nav('/workout')
+              st.setActive({
+                id: uid(),
+                name: saved.name,
+                routineId: saved.routineId,
+                startedAt: Date.now(),
+                updatedAt: 0,
+                entries: saved.entries.map((e) => {
+                  const n = makeEntry(get(e.exerciseId), { sets: e.sets.length, reps: e.targetReps ?? e.sets[0]?.r ?? 10, rest: e.rest })
+                  return { ...n, targetReps: e.targetReps }
+                }),
+              })
+              nav('/workout')
+            }}
+          >
+            <IPlay size={16} /> Do this workout again
+          </Button>
+        )}
       </div>
 
       <Sheet open={confirm} onClose={() => setConfirm(false)} title="Delete this workout?">
