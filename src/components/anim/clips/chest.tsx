@@ -8,7 +8,7 @@ const flat = () => <Bench x0={22} x1={76} />
 const CHEST = { chest: 1, delts: 0.55, triceps: 0.6 }
 
 export const benchPress = makeClip({
-  keys: [key(LIE, { grip: [45, 46], el: [0.2, -14.8] }), key(LIE, { grip: [49.5, 69], el: [3.5, 9.8] })],
+  keys: [key(LIE, { grip: [45.5, 45], el: [1, -14.8] }), key(LIE, { grip: [49.5, 65.5], el: [6, 8], fs: 0.62 })],
   steps: lowerFirst(1500, 1000),
   hot: CHEST,
   back: all(flat, barbell().back),
@@ -25,7 +25,7 @@ const incline = () => (
   </g>
 )
 export const inclineBench = makeClip({
-  keys: [key(INC, { grip: [44, 37] }), key(INC, { grip: [50, 55] })],
+  keys: [key(INC, { grip: [44, 36] }), key(INC, { grip: [50, 54], el: [8, 6], fs: 0.62 })],
   steps: lowerFirst(1500, 1000),
   hot: { chest: 1, delts: 0.75, triceps: 0.55 },
   back: all(incline, barbell().back),
@@ -43,7 +43,7 @@ const decline = () => (
   </g>
 )
 export const declineBench = makeClip({
-  keys: [key(DEC, { grip: [44, 51] }), key(DEC, { grip: [50, 69] })],
+  keys: [key(DEC, { grip: [44, 50] }), key(DEC, { grip: [49, 67], el: [6, 8], fs: 0.62 })],
   steps: lowerFirst(1500, 1000),
   hot: { chest: 1, triceps: 0.6, delts: 0.35 },
   back: all(decline, barbell().back),
@@ -51,7 +51,7 @@ export const declineBench = makeClip({
 })
 
 export const dumbbellBench = makeClip({
-  keys: [key(LIE, { grip: [45, 46], el: [0.2, -14.8] }), key(LIE, { grip: [47, 69], el: [1.5, 10] })],
+  keys: [key(LIE, { grip: [45.5, 45], el: [1, -14.8] }), key(LIE, { grip: [47, 67.5], el: [5, 9], fs: 0.6 })],
   steps: lowerFirst(1500, 1000),
   hot: CHEST,
   back: all(flat, dumbbells().back),
@@ -59,7 +59,7 @@ export const dumbbellBench = makeClip({
 })
 
 export const inclineDumbbellPress = makeClip({
-  keys: [key(INC, { grip: [44, 37] }), key(INC, { grip: [46, 58] })],
+  keys: [key(INC, { grip: [44, 36] }), key(INC, { grip: [47, 57], el: [7, 7], fs: 0.58 })],
   steps: lowerFirst(1500, 1000),
   hot: { chest: 1, delts: 0.75, triceps: 0.5 },
   back: all(incline, dumbbells().back),
@@ -68,7 +68,7 @@ export const inclineDumbbellPress = makeClip({
 
 // flys: arms open out to the sides, so from the side the hands drop towards the shoulder
 export const dumbbellFly = makeClip({
-  keys: [key(LIE, { grip: [45, 47], el: [1, -15] }), key(LIE, { grip: [41, 72], el: [2, -5] })],
+  keys: [key(LIE, { grip: [45, 46.5], el: [1.5, -15] }), key(LIE, { grip: [46, 70.5], el: [2, 1], fs: 0.32, ff: 0.45 })],
   steps: lowerFirst(1700, 1200),
   hot: { chest: 1, delts: 0.45 },
   back: all(flat, dumbbells().back),
@@ -123,14 +123,14 @@ const pecDeck = (j: Joints) => (
   </g>
 )
 export const pecDeckClip = makeClip({
-  keys: [key(SEAT, { grip: [39, 41], el: [-6, 1] }), key(SEAT, { grip: [58, 41], el: [12, 1.5] })],
+  keys: [key(SEAT, { grip: [41.5, 38.1], el: [-4.7, 1.4], fs: 0.32 }), key(SEAT, { grip: [61.5, 38.2], el: [15.3, 1.5] })],
   steps: liftFirst(1000, 1500),
   hot: { chest: 1, delts: 0.3 },
   back: pecDeck,
 })
 
 export const smithBench = makeClip({
-  keys: [key(LIE, { grip: [45, 46], el: [0.2, -14.8] }), key(LIE, { grip: [49.5, 69], el: [3.5, 9.8] })],
+  keys: [key(LIE, { grip: [49, 45.5], el: [4, -14.4] }), key(LIE, { grip: [49, 65.5], el: [6, 8], fs: 0.62 })],
   steps: lowerFirst(1500, 1000),
   hot: CHEST,
   back: all(flat, () => <g><Tube pts={[[46, 104], [46, 6]]} w={2} /><Tube pts={[[54, 104], [54, 6]]} w={2} /></g>, barbell(8).back),
@@ -138,15 +138,15 @@ export const smithBench = makeClip({
 })
 
 // push-up: straight line from heels to head, chest to the floor
-const PU: Key = { hip: [52, 77.5], torso: 74, tilt: 4, ankle: [9, 92.5], toe: 70, grip: [75, 99] }
+const PU: Key = { hip: [52, 76.5], torso: 73, tilt: 4, ankle: [9, 91.4], toe: 70, grip: [75, 99] }
 export const pushUp = makeClip({
-  keys: [key(PU, { el: [0.4, 14.5] }), key(PU, { hip: [53, 85], torso: 82, el: [-8, 5.5] })],
+  keys: [key(PU, { el: [-2.5, 14.3] }), key(PU, { hip: [53, 85], torso: 82, el: [-8.5, 3.5], fs: 0.6 })],
   steps: lowerFirst(1300, 900, 400, 150),
   hot: { chest: 1, triceps: 0.7, delts: 0.5, abs: 0.3 },
   elbow: -1,
 })
 export const diamondPushUp = makeClip({
-  keys: [key(PU, { grip: [72, 99], el: [-0.6, 14.5] }), key(PU, { hip: [53, 85], torso: 82, grip: [72, 99], el: [-9, 4] })],
+  keys: [key(PU, { grip: [72, 99], el: [-3, 14.2] }), key(PU, { hip: [53, 85], torso: 82, grip: [72, 99], el: [-8.5, 3], fs: 0.6 })],
   steps: lowerFirst(1300, 900, 400, 150),
   hot: { triceps: 1, chest: 0.7, delts: 0.4 },
   elbow: -1,

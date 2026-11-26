@@ -1,64 +1,83 @@
-import { ANK, BACKBAR, STAND, backBarPoint, key, liftFirst, lowerFirst, makeClip, type Joints, type Key } from '../engine'
+import { ANK, BACKBAR, STAND, backBarPoint, ease, hipFrom, key, liftFirst, lowerFirst, makeClip, type Joints, type Key, type Step } from '../engine'
 import { Bench, Cable, Column, Pad, Plate, Stack, Tube, barAt, barbell, dumbbells, Roller, along } from '../kit'
 import type { V } from '../rig'
 
 const PULL = { lats: 1, biceps: 0.55, traps: 0.4, delts: 0.3 }
 
+// Hinges. Legs are set by shin and thigh angles from the ankle; the trunk lean is solved each frame so the body
+// plus the bar stays balanced over the middle of the foot. Arms hang straight down, so the bar rides close to
+// the legs in a vertical line, the way a good deadlift moves.
+const PLUMB: V = [0, 27.6]
+const hinge = (shin: number, thigh: number, extra: Partial<Key> = {}): Key => ({ hip: hipFrom([56, ANK], shin, thigh), shin, thigh, torso: 40, tilt: -10, ankle: [56, ANK], hand: PLUMB, ...extra })
+const DL_STEPS: Step[] = [
+  { to: 0, ms: 550, ease: ease.linear },
+  { to: 1, ms: 650, ease: ease.in, push: true }, // off the floor: knees straighten, back angle holds
+  { to: 2, ms: 650, ease: ease.out, push: true }, // past the knees: hips drive forward to lockout
+  { to: 2, ms: 350, ease: ease.linear },
+  { to: 1, ms: 700, ease: ease.in }, // hips back first
+  { to: 0, ms: 600, ease: ease.out }, // then knees bend to set it down
+]
 export const deadlift = makeClip({
-  keys: [
-    { hip: [41, 73], torso: 63, tilt: -18, ankle: [56, ANK], grip: [59, 92] },
-    key(STAND, { hand: [0.3, 27.4] }),
-  ],
-  steps: liftFirst(1200, 1300, 550, 350),
+  keys: [hinge(20, -80, { tilt: -16 }), hinge(5, -44, { tilt: -14 }), hinge(2, -1, { tilt: 0 })],
+  steps: DL_STEPS,
   hot: { glutes: 1, hams: 0.8, lowback: 0.85, quads: 0.5, traps: 0.4, forearms: 0.4 },
+  balance: true,
+  load: { at: 'hand', mass: 0.9 },
   back: barbell().back,
   front: barbell().front,
 })
-
-const RDL_BOTTOM: Key = { hip: [42, 60], torso: 74, tilt: -20, ankle: [56, ANK], grip: [59, 82] }
+export const sumoDeadlift = makeClip({
+  keys: [hinge(24, -85, { tilt: -14, ankle2: [54, ANK] }), hinge(8, -50, { tilt: -12, ankle2: [54, ANK] }), hinge(2, -1, { tilt: 0, ankle2: [54, ANK] })],
+  steps: DL_STEPS,
+  hot: { glutes: 1, quads: 0.7, hams: 0.6, lowback: 0.6, forearms: 0.35 },
+  balance: true,
+  load: { at: 'hand', mass: 0.9 },
+  back: barbell().back,
+  front: barbell().front,
+})
+// Romanian / stiff-leg: start standing, push the hips back with soft (or straight) knees, bar slides down the thighs
 export const romanianDeadlift = makeClip({
-  keys: [key(STAND, { hand: [0.3, 27.4] }), RDL_BOTTOM],
-  steps: lowerFirst(1600, 1100),
+  keys: [hinge(2, -1, { tilt: 0 }), hinge(8, -50, { tilt: -14 })],
+  steps: lowerFirst(1700, 1100),
   hot: { hams: 1, glutes: 0.85, lowback: 0.55, forearms: 0.3 },
+  balance: true,
+  load: { at: 'hand', mass: 0.6 },
   back: barbell().back,
   front: barbell().front,
 })
 export const stiffLegDeadlift = makeClip({
-  keys: [key(STAND, { hand: [0.3, 27.4] }), { hip: [45, 57], torso: 92, tilt: -22, ankle: [56, ANK], grip: [64, 87] }],
-  steps: lowerFirst(1700, 1100),
+  keys: [hinge(2, -1, { tilt: 0 }), hinge(4, -45, { tilt: -14 })],
+  steps: lowerFirst(1800, 1100),
   hot: { hams: 1, glutes: 0.7, lowback: 0.7 },
+  balance: true,
+  load: { at: 'hand', mass: 0.5 },
   back: barbell().back,
   front: barbell().front,
 })
 export const dumbbellRDL = makeClip({
-  keys: [key(STAND, { hand: [0.3, 27.4] }), RDL_BOTTOM],
-  steps: lowerFirst(1600, 1100),
+  keys: [hinge(2, -1, { tilt: 0 }), hinge(8, -50, { tilt: -14 })],
+  steps: lowerFirst(1700, 1100),
   hot: { hams: 1, glutes: 0.85, lowback: 0.5 },
+  balance: true,
+  load: { at: 'hands', mass: 0.4 },
   back: dumbbells().back,
   front: dumbbells().front,
 })
 export const goodMorning = makeClip({
-  keys: [key(STAND, { ...BACKBAR }), { hip: [44, 58], torso: 80, tilt: -25, ankle: [56, ANK], ...BACKBAR }],
-  steps: lowerFirst(1600, 1100),
+  keys: [hinge(2, -1, { tilt: 0, ...BACKBAR, hand: undefined }), hinge(6, -50, { tilt: -16, ...BACKBAR, hand: undefined })],
+  steps: lowerFirst(1700, 1100),
   hot: { hams: 1, lowback: 0.85, glutes: 0.7 },
+  balance: true,
+  load: { at: 'back', mass: 0.4 },
   back: barAt(backBarPoint).back,
   front: barAt(backBarPoint).front,
 })
-export const sumoDeadlift = makeClip({
-  keys: [
-    { hip: [45, 76], torso: 42, tilt: -12, ankle: [56, ANK], ankle2: [52, ANK], grip: [59, 92] },
-    key(STAND, { hand: [0.3, 27.4] }),
-  ],
-  steps: liftFirst(1200, 1300, 550, 350),
-  hot: { glutes: 1, quads: 0.7, hams: 0.6, lowback: 0.6, forearms: 0.35 },
-  back: barbell().back,
-  front: barbell().front,
-})
 
-// bent-over rows: hinge, then pull the weight to the lower ribs
-const ROW: Key = { hip: [44, 60], torso: 70, tilt: -18, ankle: [56, ANK], hand: [-2, 27.4] }
+// bent-over rows: hold a hinge with the bar hanging under the shoulders, then row it to the bottom of the ribs.
+// The trunk is balanced each frame, so the body shifts a touch as the weight comes in.
+const ROW_TOP = { hand: undefined, handT: [9.5, 11.5] as V }
 export const barbellRow = makeClip({
-  keys: [ROW, key(ROW, { hand: undefined, grip: [54, 65] })],
+  keys: [hinge(12, -50, { tilt: -12, torso: 58 }), hinge(12, -50, { tilt: -12, torso: 58, ...ROW_TOP })],
   steps: liftFirst(900, 1400),
   hot: PULL,
   back: barbell().back,
@@ -76,30 +95,30 @@ const tbar = (j: Joints) => {
   )
 }
 export const tBarRow = makeClip({
-  keys: [key(ROW, { torso: 58, hip: [44, 63], hand: [-1, 27.4] }), key(ROW, { torso: 58, hip: [44, 63], hand: undefined, grip: [54, 68] })],
+  keys: [hinge(14, -56, { tilt: -12, torso: 52 }), hinge(14, -56, { tilt: -12, torso: 52, ...ROW_TOP })],
   steps: liftFirst(900, 1400),
   hot: PULL,
   back: tbar,
 })
 // one-arm row: free hand braced on a bench in front
-const OAR: Key = { hip: [44, 62], torso: 76, tilt: -15, ankle: [58, ANK], ankle2: [36, ANK], hand: [-1, 27.4], grip2: [82, 77] }
+const OAR: Key = { hip: [44, 62], torso: 76, tilt: -12, ankle: [58, ANK], ankle2: [36, ANK], hand: [-1, 27.4], grip2: [82, 77] }
 export const oneArmDumbbellRow = makeClip({
-  keys: [OAR, key(OAR, { hand: undefined, grip: [55, 66] })],
+  keys: [OAR, key(OAR, { hand: undefined, handT: [5, 17] })],
   steps: liftFirst(900, 1400),
   hot: PULL,
   back: (j) => <g><Bench x0={68} x1={104} y={80} />{dumbbells().back(j)}</g>,
   front: dumbbells().front,
 })
 // chest on an incline pad, both dumbbells pulled back
-const CSR: Key = { hip: [48, 74], torso: 48, tilt: -6, ankle: [40, ANK], ankle2: [34, ANK], hand: [0.5, 27.4] }
+const CSR: Key = { hip: [46, 62], torso: 50, tilt: -6, ankle: [42, ANK], ankle2: [38, ANK], hand: [0.5, 27.4] }
 export const chestSupportedRow = makeClip({
-  keys: [CSR, key(CSR, { hand: [-12, 13] })],
+  keys: [CSR, key(CSR, { hand: undefined, handT: [7, 12] })],
   steps: liftFirst(900, 1400),
   hot: PULL,
   back: (j) => (
     <g>
-      <Tube pts={[[58, 104], [58, 82]]} />
-      <Pad a={[52, 84]} b={[74, 60]} w={4.5} />
+      <Tube pts={[[64, 104], [64, 58]]} />
+      <Pad a={[57, 64]} b={[71, 52]} w={4.5} />
       {dumbbells().back(j)}
     </g>
   ),
@@ -201,7 +220,6 @@ export const invertedRow = makeClip({
   keys: [INV, key(INV, { hip: [55, 79], torso: -65 })],
   steps: liftFirst(900, 1300),
   hot: PULL,
-  elbow: -1,
   back: () => (
     <g>
       <Tube pts={[[22, 104], [22, 50]]} w={3} />
@@ -211,7 +229,7 @@ export const invertedRow = makeClip({
 })
 
 // back extension on a 45° bench: hinge down over the pad and back up in line with the legs
-const BE: Key = { hip: [58, 66], torso: 42, tilt: 0, ankle: [28, 97], toe: 40, handT: [6, 5], elT: [2, 14] }
+const BE: Key = { hip: [58, 66], torso: 42, tilt: 0, ankle: [28, 92], toe: 40, handT: [6, 5], elT: [2, 14] }
 export const backExtension = makeClip({
   keys: [BE, key(BE, { torso: 140, tilt: -20 })],
   steps: [{ to: 0, ms: 500 }, { to: 1, ms: 1500 }, { to: 1, ms: 200 }, { to: 0, ms: 1100, push: true }],

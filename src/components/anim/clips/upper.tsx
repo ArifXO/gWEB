@@ -36,14 +36,15 @@ const uprightBench = () => (
   </g>
 )
 export const seatedDumbbellPress = makeClip({
-  keys: [key(SIT, { hand: [2.5, -1], el: [-0.5, 13.6] }), key(SIT, { hand: [1, -27.4], el: [0.5, -14.6] })],
+  keys: [key(SIT, { hand: [2.5, -1.5], el: [0.6, 9.5], fs: 0.62 }), key(SIT, { hand: [0.6, -28.6], el: [1.6, -14.5] })],
   steps: liftFirst(1000, 1400, 450, 250),
+  arms: 'ik', // dumbbells travel straight up
   hot: { delts: 1, triceps: 0.6 },
   back: all(uprightBench, dumbbells().back),
   front: dumbbells().front,
 })
 export const arnoldPress = makeClip({
-  keys: [key(SIT, { hand: [9, -3], el: [7.5, 11] }), key(SIT, { hand: [3, -1], el: [-1, 13.5] }), key(SIT, { hand: [1, -27.4], el: [0.5, -14.6] })],
+  keys: [key(SIT, { hand: [10, -2], el: [6.5, 9.5] }), key(SIT, { hand: [3, -1.5], el: [0.6, 9.5] }), key(SIT, { hand: [1, -27.4], el: [0.5, -14.6] })],
   steps: [
     { to: 0, ms: 400, ease: ease.linear }, { to: 1, ms: 450 }, { to: 2, ms: 750, push: true }, { to: 2, ms: 250, ease: ease.linear },
     { to: 1, ms: 900, ease: ease.lower }, { to: 0, ms: 500 },
@@ -61,7 +62,7 @@ const machine = (j: Joints) => (
   </g>
 )
 export const machineShoulderPress = makeClip({
-  keys: [key(SIT, { hand: [4, -1], el: [-0.5, 13.6] }), key(SIT, { hand: [3, -27], el: [1.5, -14.5] })],
+  keys: [key(SIT, { hand: [4, -1.5], el: [-0.5, 9.5] }), key(SIT, { hand: [3, -27], el: [1.5, -14.5] })],
   steps: liftFirst(1000, 1400),
   hot: { delts: 1, triceps: 0.6 },
   back: machine,
@@ -69,14 +70,14 @@ export const machineShoulderPress = makeClip({
 
 // raises: lateral raises lift out to the sides (seen from the side, the arm points at you), front raises go forward
 export const lateralRaise = makeClip({
-  keys: [key(STAND, { hand: [1.5, 27], el: [0.5, 14] }), key(STAND, { hand: [13, 3], el: [6.5, 2.4], shrug: 0.3 })],
+  keys: [key(STAND, { hand: [1.5, 27], el: [0.5, 14] }), key(STAND, { hand: [9.5, 1.5], el: [4.8, 1.6], shrug: 0.3 })],
   steps: liftFirst(900, 1500, 400, 350),
   hot: { delts: 1, traps: 0.3 },
   back: dumbbells(4).back,
   front: dumbbells(4).front,
 })
 export const cableLateralRaise = makeClip({
-  keys: [key(STAND, { hand: [3, 26], el: [1, 14] }), key(STAND, { hand: [13, 3], el: [6.5, 2.4] })],
+  keys: [key(STAND, { hand: [3, 26], el: [1, 14] }), key(STAND, { hand: [9.5, 1.5], el: [4.8, 1.6] })],
   steps: liftFirst(900, 1500, 400, 350),
   hot: { delts: 1 },
   back: (j) => (
@@ -104,7 +105,7 @@ export const rearDeltFly = makeClip({
 export const reversePecDeck = rearDeltFly
 const ROPE_HIGH: V = [98, 26]
 export const facePull = makeClip({
-  keys: [key(STAND, { hip: [54, 56], torso: -4, ankle: [60, ANK], ankle2: [48, ANK], hand: [27, 4], el: [14, 2] }), key(STAND, { hip: [54, 56], torso: -6, ankle: [60, ANK], ankle2: [48, ANK], hand: [7, -8], el: [-6, -1] })],
+  keys: [key(STAND, { hip: [54, 56], torso: -4, ankle: [60, ANK], ankle2: [48, ANK], hand: [27, 4.5], el: [13.5, 3.5] }), key(STAND, { hip: [54, 56], torso: -6, ankle: [60, ANK], ankle2: [48, ANK], hand: [7, -8], el: [-4.8, -0.8] })],
   steps: liftFirst(900, 1400, 400, 350),
   hot: { delts: 1, traps: 0.6 },
   back: (j) => (
@@ -124,7 +125,7 @@ export const uprightRow = makeClip({
 
 // --- biceps -------------------------------------------------------------------------------
 // upper arm stays pinned to the side; only the forearm moves
-const curlKeys = (base: Key, e: V = [-0.5, 15.4], top: V = [6, -12.4]) => [
+const curlKeys = (base: Key, e: V = [-0.5, 15.4], top: V = [8, -11]) => [
   key(base, { el: e, hand: [e[0] + 1.6, e[1] + 13.3] }),
   key(base, { el: [e[0] + 1, e[1] - 0.6], hand: [e[0] + 1 + top[0], e[1] - 0.6 + top[1]], tilt: 2 }),
 ]
@@ -170,7 +171,7 @@ export const inclineDumbbellCurl = makeClip({
 // seated, elbow braced against the inside of the thigh
 const CONC: Key = { hip: [46, 80], torso: 42, tilt: -12, ankle: [70, ANK], ankle2: [62, ANK], hand2: [10, 12], el2: [6, 12] }
 export const concentrationCurl = makeClip({
-  keys: [key(CONC, { el: [4, 14.8], hand: [5, 28.2] }), key(CONC, { el: [4.5, 14.6], hand: [1, 1.6] })],
+  keys: [key(CONC, { el: [4, 14.8], hand: [9.5, 27] }), key(CONC, { el: [4.5, 14.6], hand: [9.8, 2.2] })],
   steps: liftFirst(),
   hot: CURL,
   back: () => <Bench x0={20} x1={60} y={84} />,
@@ -196,7 +197,7 @@ export const machinePreacherCurl = preacherCurl
 
 // --- triceps -----------------------------------------------------------------------------------
 export const closeGripBench = makeClip({
-  keys: [key(LIE, { grip: [46, 46], el: [0.6, -14.8] }), key(LIE, { grip: [51, 68], el: [6, 8.5] })],
+  keys: [key(LIE, { grip: [46, 45], el: [2.5, -14.6] }), key(LIE, { grip: [55.5, 64], el: [11.5, 6], fs: 0.84 })],
   steps: lowerFirst(1500, 1000),
   hot: { triceps: 1, chest: 0.65, delts: 0.45 },
   back: all(() => <Bench x0={22} x1={76} />, barbell().back),
@@ -204,8 +205,9 @@ export const closeGripBench = makeClip({
 })
 // skull crusher: upper arms still, forearms fold back towards the forehead
 export const skullCrusher = makeClip({
-  keys: [key(LIE, { el: [-3, -15.2], grip: [42.3, 44.8] }), key(LIE, { el: [-3.4, -15.1], grip: [30.6, 64] })],
+  keys: [key(LIE, { el: [-3, -15.2], grip: [36.6, 43] }), key(LIE, { el: [-3.4, -15.1], grip: [30.6, 64] })],
   steps: lowerFirst(1500, 1000),
+  arms: 'swing', // upper arms stay still; only the forearms move
   hot: { triceps: 1 },
   back: all(() => <Bench x0={22} x1={76} />, barbell(7.2).back),
   front: barbell(7.2).front,
@@ -223,8 +225,8 @@ export const ropePushdown = makeClip({ keys: pushdownKeys, steps: liftFirst(800,
 // overhead extensions: elbows point up, hands drop behind the head and press up
 export const overheadCableExtension = makeClip({
   keys: [
-    key(STAND, { torso: 22, hip: [52, 56], ankle: [62, ANK], ankle2: [40, ANK], el: [9, -12.4], hand: [-1, -2.6] }),
-    key(STAND, { torso: 22, hip: [52, 56], ankle: [62, ANK], ankle2: [40, ANK], el: [9, -12.4], hand: [17.5, -23.4] }),
+    key(STAND, { torso: 22, hip: [52, 56], ankle: [62, ANK], ankle2: [42, ANK], el: [9, -12.4], hand: [-3.8, -8] }),
+    key(STAND, { torso: 22, hip: [52, 56], ankle: [62, ANK], ankle2: [42, ANK], el: [9, -12.4], hand: [17.5, -23.4] }),
   ],
   steps: liftFirst(900, 1400),
   hot: { triceps: 1 },
@@ -251,7 +253,7 @@ export const dumbbellKickback = makeClip({
   front: (j) => <BellSide c={j.grip} angle={angleOf(j.near.elbow, j.near.wrist)} />,
 })
 // bench dip: hands on a bench behind, heels on the floor in front
-const BD: Key = { hip: [55, 70], torso: 2, tilt: 0, ankle: [94, 99], toe: -40, grip: [49, 78] }
+const BD: Key = { hip: [55, 70], torso: 2, tilt: 0, ankle: [88, 99], toe: -40, grip: [49, 78] }
 export const benchDip = makeClip({
   keys: [BD, key(BD, { hip: [54, 84], torso: 6 })],
   steps: lowerFirst(1300, 900),

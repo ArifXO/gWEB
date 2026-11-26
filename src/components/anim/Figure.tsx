@@ -22,6 +22,8 @@ export interface Clip {
   pose: (ms: number) => Pose
   still: number // ms at which to freeze for a still thumbnail
   marks?: number[] // ms where each step ends (key poses), for previews
+  meta?: { balance: boolean; load?: { at: string; mass: number }; support?: string }
+  com?: (ms: number) => number // body balance point (x), for checks
 }
 
 const C = {
